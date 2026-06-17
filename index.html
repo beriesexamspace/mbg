@@ -151,6 +151,7 @@
     <button data-view="quiz">Oefenexamen</button>
     <button data-view="flash">Oude examenvragen</button>
     <button data-view="summary">Samenvatting</button>
+    <button data-view="feedback">Feedback</button>
   </nav>
 </header>
 
@@ -208,6 +209,42 @@ window.MBG_SUMMARY = [{"ch":1,"title":"De chemie van levende wezens","sections":
     if(state.view==="quiz") return renderQuizGate();
     if(state.view==="flash") return renderFlashGate();
     if(state.view==="summary") return renderSummary();
+    if(state.view==="feedback") return renderFeedback();
+  }
+
+  // ---- FEEDBACK / KLACHT ----
+  function renderFeedback(){
+    var sel = "Fout in een vraag";
+    var ta = 'width:100%;font-family:inherit;font-size:14px;padding:10px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink)';
+    var html='<div class="card pad"><h2 style="margin-top:0">Feedback &amp; klachten</h2>'+
+      '<p class="muted">Zie je een fout in een vraag, heb je een idee, of werkt iets niet? Laat het hier weten — het komt rechtstreeks bij de maker terecht en wordt gefixt.</p>'+
+      '<label class="fld">Soort melding</label>'+
+      '<div class="chips" id="fbType">'+["Fout in een vraag","Idee / verbetering","Werkt niet","Andere"].map(function(t,i){return '<button type="button" class="chip'+(i===0?" on":"")+'" data-t="'+esc(t)+'">'+t+'</button>';}).join("")+'</div>'+
+      '<label class="fld">Over welk hoofdstuk / welke vraag? <span class="muted">(optioneel)</span></label>'+
+      '<input type="text" id="fbWaar" placeholder="bv. Hoofdstuk 6, vraag over bloedarmoede" style="'+ta+'">'+
+      '<label class="fld">Je bericht</label>'+
+      '<textarea id="fbMsg" rows="5" placeholder="Beschrijf de fout of je idee…" style="'+ta+'"></textarea>'+
+      '<label class="fld">Je naam <span class="muted">(optioneel)</span></label>'+
+      '<input type="text" id="fbNaam" placeholder="zodat we je kunnen bedanken" style="'+ta+'">'+
+      '<input type="text" id="fbBot" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0">'+
+      '<div class="row" style="margin-top:16px;align-items:center"><button class="btn" id="fbSend">Versturen</button><span id="fbStatus" style="font-size:13px"></span></div>'+
+      '</div>';
+    app.innerHTML=html;
+    [].slice.call(document.querySelectorAll("#fbType .chip")).forEach(function(b){ b.onclick=function(){ sel=b.dataset.t; [].slice.call(document.querySelectorAll("#fbType .chip")).forEach(function(x){x.classList.toggle("on",x===b);}); }; });
+    document.getElementById("fbSend").onclick=function(){
+      var status=document.getElementById("fbStatus");
+      if(document.getElementById("fbBot").value){ return; }
+      var msg=document.getElementById("fbMsg").value.trim();
+      if(!msg){ status.style.color="var(--bad)"; status.textContent="Schrijf eerst een bericht."; return; }
+      var btn=document.getElementById("fbSend"); btn.disabled=true; status.style.color="var(--muted)"; status.textContent="Versturen…";
+      var payload={ access_key:"cbaac6dd-7382-4c16-9463-97d63d712fcf", subject:"MBG-tool: "+sel, from_name:"MBG oefentool",
+        soort:sel, hoofdstuk_of_vraag:document.getElementById("fbWaar").value||"-", naam:document.getElementById("fbNaam").value||"-", bericht:msg };
+      fetch("https://api.web3forms.com/submit",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(payload)})
+        .then(function(r){return r.json();}).then(function(d){
+          if(d && d.success){ app.innerHTML='<div class="card pad results center"><div style="font-size:42px">✅</div><h2 style="margin:6px 0">Bedankt!</h2><p class="muted">Je melding is verstuurd. We bekijken het en fixen het.</p><button class="btn" id="fbBack" style="margin-top:8px">Terug naar start</button></div>'; document.getElementById("fbBack").onclick=function(){ go("home"); }; }
+          else { btn.disabled=false; status.style.color="var(--bad)"; status.textContent="Versturen mislukt — probeer het later opnieuw."; }
+        }).catch(function(){ btn.disabled=false; status.style.color="var(--bad)"; status.textContent="Geen verbinding — probeer het later opnieuw."; });
+    };
   }
 
   // ---- HOME ----
