@@ -321,7 +321,12 @@ window.MBG_SUMMARY = [{"ch":1,"title":"De chemie van levende wezens","sections":
                    correct:0, wrong:[], done:false };
     renderQuiz();
   }
-  function prepMCQ(q){ return { q:q, opts:shuffle(q.options) }; }
+  function prepMCQ(q){
+    // Vragen met letter-verwijzingen ("zowel a als b", "alle bovenstaande") NIET schudden,
+    // anders kloppen de letters niet meer met de getoonde volgorde.
+    var dep = q.options.some(function(o){ return /bovenstaande/i.test(o.text) || /zowel\s+[a-e]\s+als\s+[a-e]/i.test(o.text); });
+    return { q:q, opts: dep ? q.options.slice() : shuffle(q.options) };
+  }
 
   function startExamSim(){ var p=shuffle(D.mcq.slice()).slice(0,40); startQuiz(p,"Examen-simulatie"); go("quiz"); }
   function startNotKnown(){ var p=shuffle(D.mcq.filter(notKnown)); startQuiz(p,"Nog te leren"); go("quiz"); }
