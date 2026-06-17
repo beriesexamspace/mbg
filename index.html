@@ -173,6 +173,19 @@ window.MBG_SUMMARY = [{"ch":1,"title":"De chemie van levende wezens","sections":
   var chapters = D.chapters.slice().sort(function(a,b){return a.ch-b.ch;});
   var titleOf = {}; chapters.forEach(function(c){ titleOf[c.ch]=c.title; });
 
+  // distractoren voor oude-examenvragen: echte antwoorden uit hetzelfde hoofdstuk
+  var recoByCh = {};
+  D.reco.forEach(function(q){ (recoByCh[q.ch]=recoByCh[q.ch]||[]).push(q.answer); });
+  Object.keys(recoByCh).forEach(function(c){ recoByCh[c]=recoByCh[c].filter(function(v,i,a){return a.indexOf(v)===i;}); });
+  function recoOptions(q){
+    var correct=q.answer, cl=correct.length;
+    var pool=(recoByCh[q.ch]||[]).filter(function(t){return t!==correct;});
+    pool=shuffle(pool).sort(function(a,b){return Math.abs(a.length-cl)-Math.abs(b.length-cl);}).slice(0,6);
+    pool=shuffle(pool).slice(0,3);
+    if(pool.length<3){ var all=shuffle(D.reco.map(function(r){return r.answer;}).filter(function(t){return t!==correct && pool.indexOf(t)<0;})); while(pool.length<3 && all.length) pool.push(all.shift()); }
+    return shuffle([{text:correct,ok:true}].concat(pool.map(function(t){return {text:t,ok:false};})));
+  }
+
   // ---- storage ----
   function load(k,def){ try{ return JSON.parse(localStorage.getItem(k)) || def; }catch(e){ return def; } }
   function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -270,7 +283,7 @@ window.MBG_SUMMARY = [{"ch":1,"title":"De chemie van levende wezens","sections":
 
     '<div class="grid g2">'+
       modeCard("quiz","📝","Oefenexamen","Meerkeuzevragen met directe feedback. Kies hoofdstukken en oefen.")+
-      modeCard("flash","🎴","Oude examenvragen","Reconstructievragen uit echte examens. Antwoord uit het hoofd, dan controleren.")+
+      modeCard("flash","🎴","Oude examenvragen","Reconstructievragen uit echte examens — nu als meerkeuze met directe feedback.")+
     '</div>'+
     '<div class="grid g2" style="margin-top:14px">'+
       examSimCard()+
@@ -473,7 +486,7 @@ window.MBG_SUMMARY = [{"ch":1,"title":"De chemie van levende wezens","sections":
     var sel = state._flashSel || {chs:{}, shuffle:true, onlyUnknown:false};
     state._flashSel=sel;
     var html='<div class="card pad"><h2 style="margin-top:0">Oude examenvragen</h2>'+
-      '<p class="muted">Echte reconstructievragen per hoofdstuk. Probeer eerst zelf te antwoorden, toon dan het juiste antwoord en beoordeel jezelf.</p>'+
+      '<p class="muted">Echte reconstructievragen uit oude examens — nu als meerkeuze. Kies het juiste antwoord; je krijgt meteen feedback.</p>'+
       '<label class="fld">Hoofdstukken</label>'+
       '<div class="row" style="margin-bottom:8px"><button class="chip sm" id="allCh">Alle</button><button class="chip sm" id="noCh">Geen</button></div>'+
       '<div class="chips" id="chChips">'+chapters.map(function(c){
@@ -499,46 +512,47 @@ window.MBG_SUMMARY = [{"ch":1,"title":"De chemie van levende wezens","sections":
     refresh();
   }
 
-  function startFlash(pool){ state.flash={items:pool,idx:0,shown:false,known:0,unknown:0,done:false}; renderFlash(); }
+  function startFlash(pool){ state.flash={items:pool.map(function(q){return {q:q,opts:recoOptions(q)};}),idx:0,answered:false,picked:-1,correct:0,wrong:0,done:false}; renderFlash(); }
 
   function renderFlash(){
     var F=state.flash;
     if(F.done) return renderFlashResult();
-    var q=F.items[F.idx];
-    var html='<div class="card">'+
-      '<div class="pad runtop"><span class="pill">H'+q.ch+' · '+esc(titleOf[q.ch]||"")+'</span>'+
+    var cur=F.items[F.idx], q=cur.q;
+    var html='<div class="card pad">'+
+      '<div class="runtop"><span class="pill">H'+q.ch+' · '+esc(titleOf[q.ch]||"")+'</span>'+
         '<div class="bar"><i style="width:'+pct(F.idx,F.items.length)+'%"></i></div>'+
         '<span>'+(F.idx+1)+'/'+F.items.length+'</span></div>'+
-      '<div class="flash"><div class="q">'+esc(q.question)+'</div>'+
-        (F.shown? '<div class="a">'+esc(q.answer)+'</div>':'')+
-      '</div>'+
-      '<div class="pad" style="border-top:1px solid var(--line)">'+
-        (F.shown
-          ? '<div class="row" style="justify-content:center"><button class="btn ghost" id="noBtn" style="border-color:var(--bad);color:var(--bad)">Niet gewust</button><button class="btn" id="okBtn" style="background:var(--good)">Gewust ✓</button></div>'
-          : '<div class="center"><button class="btn" id="showBtn">Toon antwoord</button></div>')+
-        '<p class="center muted" style="font-size:12px;margin:10px 0 0">'+
-          (F.shown?'<span class="kbd">1</span> niet gewust · <span class="kbd">2</span> gewust':'<span class="kbd">spatie</span> toon antwoord')+'</p>'+
-      '</div></div>';
+      '<div class="muted" style="font-size:12px">Oude examenvraag</div>'+
+      '<div class="qtext">'+esc(q.question)+'</div>'+
+      '<div id="opts">'+cur.opts.map(function(o,i){return '<button class="opt" data-i="'+i+'"><span class="k">'+String.fromCharCode(65+i)+'</span><span>'+esc(o.text)+'</span></button>';}).join("")+'</div>'+
+      '<div id="fb"></div>'+
+      '<div class="row" style="justify-content:flex-end;margin-top:4px"><button class="btn hide" id="nextBtn">Volgende →</button></div>'+
+    '</div>';
     app.innerHTML=html;
-    if(F.shown){
-      document.getElementById("okBtn").onclick=function(){ grade(true); };
-      document.getElementById("noBtn").onclick=function(){ grade(false); };
-    } else {
-      document.getElementById("showBtn").onclick=function(){ F.shown=true; renderFlash(); };
+    var optBtns=Array.prototype.slice.call(document.querySelectorAll("#opts .opt"));
+    function showAnswered(i){
+      optBtns.forEach(function(b){ var bi=+b.dataset.i; b.disabled=true; if(cur.opts[bi].ok)b.classList.add("correct"); else if(bi===i)b.classList.add("wrong"); });
+      var ok=cur.opts[i].ok; var fb=document.getElementById("fb"); fb.className="feedback "+(ok?"ok":"no");
+      fb.innerHTML=ok?"<b>Juist! ✓</b>":"<b>Fout.</b> Juiste antwoord: "+esc(q.answer);
+      var nb=document.getElementById("nextBtn"); nb.classList.remove("hide"); nb.textContent=(F.idx+1>=F.items.length)?"Bekijk resultaat →":"Volgende →";
     }
-    function grade(ok){ flash[q.id]=ok?"known":"unknown"; save("mbg_flash",flash);
-      if(ok)F.known++; else F.unknown++; F.idx++; F.shown=false;
-      if(F.idx>=F.items.length)F.done=true; renderFlash(); }
+    function pick(i){
+      if(F.answered) return; F.answered=true; F.picked=i; var ok=cur.opts[i].ok;
+      if(ok){ F.correct++; flash[q.id]="known"; } else { F.wrong++; flash[q.id]="unknown"; } save("mbg_flash",flash);
+      showAnswered(i); document.getElementById("nextBtn").focus();
+    }
+    optBtns.forEach(function(b){ b.onclick=function(){ pick(+b.dataset.i); }; });
+    document.getElementById("nextBtn").onclick=function(){ if(!F.answered)return; F.idx++; F.answered=false; F.picked=-1; if(F.idx>=F.items.length)F.done=true; renderFlash(); };
+    if(F.answered) showAnswered(F.picked);
     state._key=function(e){
-      if(!F.shown && (e.key===" "||e.key==="Enter")){ F.shown=true; renderFlash(); e.preventDefault(); }
-      else if(F.shown){ if(e.key==="2"||e.key.toLowerCase()==="g"){grade(true);e.preventDefault();}
-                        else if(e.key==="1"||e.key.toLowerCase()==="n"){grade(false);e.preventDefault();} }
+      if(!F.answered){ var k=e.key.toLowerCase(); var idx="abcde".indexOf(k); if(idx<0 && /[1-5]/.test(k)) idx=+k-1; if(idx>=0 && idx<cur.opts.length){ pick(idx); e.preventDefault(); } }
+      else if(e.key==="Enter"||e.key===" "){ document.getElementById("nextBtn").click(); e.preventDefault(); }
     };
   }
   function renderFlashResult(){
-    var F=state.flash; var p=pct(F.known,F.items.length);
+    var F=state.flash; var p=pct(F.correct,F.items.length);
     var html='<div class="card pad results center"><span class="pill">Oude examenvragen</span>'+
-      '<div class="big">'+p+'%</div><p style="font-weight:600;margin:0 0 4px">'+F.known+' gekend, '+F.unknown+' te herhalen</p>'+
+      '<div class="big">'+p+'%</div><p style="font-weight:600;margin:0 0 4px">'+F.correct+' juist · '+F.wrong+' fout</p>'+
       '<div class="row" style="justify-content:center;margin-top:14px">'+
         '<button class="btn ghost" id="again">Nieuwe set</button><button class="btn ghost" id="home">Naar start</button></div></div>';
     app.innerHTML=html;
