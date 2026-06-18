@@ -177,13 +177,17 @@ window.MBG_SUMMARY = [{"ch":1,"title":"De chemie van levende wezens","sections":
   var recoByCh = {};
   D.reco.forEach(function(q){ (recoByCh[q.ch]=recoByCh[q.ch]||[]).push(q.answer); });
   Object.keys(recoByCh).forEach(function(c){ recoByCh[c]=recoByCh[c].filter(function(v,i,a){return a.indexOf(v)===i;}); });
+  function recoNum(t){ return /\d/.test(t); }   // bevat een cijfer (getal, %, pH...)
   function recoOptions(q){
-    var correct=q.answer, cl=correct.length;
+    var correct=q.answer, cl=correct.length, cn=recoNum(correct);
     var pool=(recoByCh[q.ch]||[]).filter(function(t){return t!==correct;});
-    pool=shuffle(pool).sort(function(a,b){return Math.abs(a.length-cl)-Math.abs(b.length-cl);}).slice(0,6);
-    pool=shuffle(pool).slice(0,3);
-    if(pool.length<3){ var all=shuffle(D.reco.map(function(r){return r.answer;}).filter(function(t){return t!==correct && pool.indexOf(t)<0;})); while(pool.length<3 && all.length) pool.push(all.shift()); }
-    return shuffle([{text:correct,ok:true}].concat(pool.map(function(t){return {text:t,ok:false};})));
+    var same=pool.filter(function(t){return recoNum(t)===cn;});   // zelfde type als het juiste antwoord
+    var rest=pool.filter(function(t){return recoNum(t)!==cn;});
+    function near(arr){ return shuffle(arr).sort(function(a,b){return Math.abs(a.length-cl)-Math.abs(b.length-cl);}).slice(0,6); }
+    var picks=shuffle(near(same)).slice(0,3);
+    if(picks.length<3){ var f=shuffle(near(rest)); while(picks.length<3 && f.length) picks.push(f.shift()); }
+    if(picks.length<3){ var all=shuffle(D.reco.map(function(r){return r.answer;}).filter(function(t){return t!==correct && picks.indexOf(t)<0;})); while(picks.length<3 && all.length) picks.push(all.shift()); }
+    return shuffle([{text:correct,ok:true}].concat(picks.map(function(t){return {text:t,ok:false};})));
   }
 
   // ---- storage ----
