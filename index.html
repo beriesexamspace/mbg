@@ -300,6 +300,8 @@
     .js-enter{animation:fadeUp .36s var(--ease) both}
     .feedback,.hintbox,.whybox{animation:slideIn .28s var(--ease) both}
     .opt.correct{animation:pop .34s var(--ease)}
+    .mode.hl{animation:pop .5s var(--ease)}
+    .track.justpicked{animation:pop .4s var(--ease)}
   }
   @media (prefers-reduced-motion: reduce){
     *{animation-duration:.001ms!important;transition-duration:.001ms!important}
@@ -410,6 +412,23 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
   }
   function setTrack(t){ modeCfg.track=t; if(t==="herkansing" && !modeCfg.level) modeCfg.level="basis"; save("mbg_mode",modeCfg); }
   function setLevel(l){ modeCfg.level=l; save("mbg_mode",modeCfg); }
+  // werk de keuze in-place bij (geen volledige her-render -> vloeiend) en scroll zacht mee
+  function updateModeUI(scrollSel,picked){
+    var herk = modeCfg.track==="herkansing";
+    Array.prototype.slice.call(document.querySelectorAll(".track")).forEach(function(el){ el.classList.toggle("on", el.dataset.track===modeCfg.track); });
+    var rev=document.getElementById("levelReveal"); if(rev) rev.classList.toggle("open", herk);
+    Array.prototype.slice.call(document.querySelectorAll(".level")).forEach(function(el){ el.classList.toggle("on", el.dataset.level===modeCfg.level); });
+    var sub=document.querySelector("#practiceAnchor .sub"); if(sub) sub.textContent=modeLabel();
+    if(picked){ picked.classList.remove("justpicked"); void picked.offsetWidth; picked.classList.add("justpicked"); }
+    if(scrollSel){ var t=document.querySelector(scrollSel);
+      if(t){ setTimeout(function(){
+        t.scrollIntoView({behavior:"smooth",block:"start"});
+        if(scrollSel==="#practiceAnchor"){
+          Array.prototype.slice.call(document.querySelectorAll(".mode")).forEach(function(m,i){
+            m.classList.remove("hl"); void m.offsetWidth; setTimeout(function(){ m.classList.add("hl"); }, 90*i); });
+        }
+      }, herk?300:60); } }
+  }
 
   // ---------- exam date ----------
   function examDate(){ var s=load("mbg_exam",null); if(s) return new Date(s); var d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+2); return d; }
@@ -562,15 +581,13 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
     document.getElementById("examInp").onchange=function(e){ save("mbg_exam", e.target.value); renderHome(); };
     document.getElementById("resetBtn").onclick=function(){ if(confirm("Alle voortgang wissen?")){ prog={}; flash={}; save("mbg_prog",prog); save("mbg_flash",flash); renderHome(); } };
     Array.prototype.slice.call(document.querySelectorAll(".track")).forEach(function(el){
-      el.onclick=function(){ var t=el.dataset.track; setTrack(t); state._scrollAfter=(t==="herkansing"?"#levelReveal":"#practiceAnchor"); renderHome(); }; });
+      el.onclick=function(){ var t=el.dataset.track; setTrack(t); updateModeUI(t==="herkansing"?"#levelReveal":"#practiceAnchor", el); }; });
     Array.prototype.slice.call(document.querySelectorAll(".level")).forEach(function(el){
-      el.onclick=function(){ setLevel(el.dataset.level); state._scrollAfter="#practiceAnchor"; renderHome(); }; });
+      el.onclick=function(){ setLevel(el.dataset.level); updateModeUI("#practiceAnchor", el); }; });
     Array.prototype.slice.call(document.querySelectorAll("[data-mode]")).forEach(function(el){ el.onclick=function(){ go(el.dataset.mode); }; });
     var es=document.getElementById("examSimBtn"); if(es) es.onclick=function(){ startExamSim(); };
     var wb=document.getElementById("notKnownBtn"); if(wb && !wb.disabled) wb.onclick=function(){ startNotKnown(); };
     fetchCounter();
-    if(state._scrollAfter){ var tgt=document.querySelector(state._scrollAfter); state._scrollAfter=null;
-      if(tgt) setTimeout(function(){ tgt.scrollIntoView({behavior:"smooth",block:"start"}); }, 90); }
   }
   function fetchCounter(){
     var e0=document.getElementById("counterVal");
