@@ -626,7 +626,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
         '<button class="mode js-enter" id="notKnownBtn"'+(n?"":' disabled')+'><span class="me">'+ic("target")+'</span><b>Vragen die je nog niet kent</b><small>'+(n? n+' vragen nog te leren · '+done+' al beheerst.':'Top! Je hebt alle vragen al eens juist beantwoord. 🎉')+'</small></button>'+
       '</div>';
     setHTML(html);
-    document.getElementById("backBtn").onclick=function(){ state.step=(herk?"herkansing":"track"); renderHome(); window.scrollTo(0,0); };
+    document.getElementById("backBtn").onclick=function(){ if(state.fromHub){ location.href="https://berat007yildirim-ai.github.io/"; return; } state.step=(herk?"herkansing":"track"); renderHome(); window.scrollTo(0,0); };
     bindBanner();
     Array.prototype.slice.call(document.querySelectorAll("[data-mode]")).forEach(function(el){ el.onclick=function(){ go(el.dataset.mode); }; });
     var es=document.getElementById("examSimBtn"); if(es) es.onclick=function(){ startExamSim(); };
@@ -665,7 +665,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
     return '<div class="modebanner'+(herk?" v":"")+'">'+ic(herk?"sprout":"book")+'<span>'+modeLabel()+'</span>'+
       '<a id="changeModeLink">wijzig</a></div>';
   }
-  function bindBanner(){ var l=document.getElementById("changeModeLink"); if(l) l.onclick=function(){ state.step="track"; go("home"); }; }
+  function bindBanner(){ var l=document.getElementById("changeModeLink"); if(l) l.onclick=function(){ if(state.fromHub){ location.href="https://berat007yildirim-ai.github.io/"; return; } state.step="track"; go("home"); }; }
 
   // =================== QUIZ (MCQ) ===================
   function renderQuizGate(){
@@ -1013,6 +1013,12 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
   // global key listener
   document.addEventListener("keydown",function(e){ if(state._key) state._key(e); });
 
+  // traject vanuit de hub overnemen → direct naar de oefenpagina
+  try{ var _q=new URLSearchParams(location.search); var _m=_q.get("m");
+    if(_m==="training"||_m==="herkansing"){ setTrack(_m);
+      var _c=_q.get("calm"); if(_c!=null){ calm=(_c!=="0"); save("mbg_calm",calm); applyCalm(); }
+      state.step="practice"; state.fromHub=true; }
+  }catch(e){}
   render();
 })();
 </script>
