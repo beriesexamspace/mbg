@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#0f6e6a" />
-<title>MBG — Examentraining</title>
+<title>MBG — Berie’s exam space</title>
 <style>
   :root{
     --bg:#f4f2ee; --bg2:#ebe8e2; --card:#ffffff; --ink:#1b232c; --muted:#5d6873;
@@ -218,10 +218,10 @@
     background:var(--accent-soft);color:var(--accent-ink);font-size:13.5px;font-weight:600}
   .modebanner.v{background:var(--violet-soft);color:var(--violet)}
   .modebanner .ic{width:18px;height:18px}
-  .modebanner a{margin-left:auto;font-size:13px;font-weight:600;cursor:pointer;text-decoration:underline;color:inherit}
+  .modebanner a,.modebanner .bnlink{margin-left:auto;font-size:13px;font-weight:600;cursor:pointer;text-decoration:underline;color:inherit;border:none;background:none;font-family:inherit;padding:0}
 
   /* question runner */
-  .runtop{display:flex;align-items:center;gap:12px;margin:2px 0 14px;font-size:13px;color:var(--muted)}
+  .runtop{display:flex;align-items:center;gap:12px;margin:2px 0 14px;font-size:13px;color:var(--muted);flex-wrap:wrap}
   .runtop .bar{flex:1}
   .qtext{font-size:20px;font-weight:600;margin:8px 0 16px;font-family:Georgia,serif;line-height:1.4}
   .opt{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;border:1.5px solid var(--line);
@@ -330,7 +330,7 @@
 <body>
 <header class="top">
   <div class="topin">
-    <div class="brand"><span class="logo">M</span><div>MBG Examentraining<small>Menselijke biologie &amp; genetica</small></div></div>
+    <div class="brand"><span class="logo">M</span><div>MBG Examentraining<small>Berie’s exam space</small></div></div>
     <span class="spacer"></span>
     <a class="iconbtn" href="https://berat007yildirim-ai.github.io/" title="Andere vakken kiezen"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Vakken</span></a>
     <button class="iconbtn" id="themeBtn" aria-label="Wissel tussen licht en donker thema" title="Licht/donker"></button>
@@ -407,9 +407,11 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
   // ---------- storage ----------
   function load(k,def){ try{ var v=JSON.parse(localStorage.getItem(k)); return v==null?def:v; }catch(e){ return def; } }
   function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+  function rawGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function rawSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
   var prog = load("mbg_prog",{});
   var flash = load("mbg_flash",{});
-  var theme = load("mbg_theme","light");
+  var theme = rawGet("site_theme") || load("mbg_theme","light");
   var modeCfg = load("mbg_mode",{track:"training",level:null});
   if(modeCfg.track==="herkansing" && !modeCfg.level) modeCfg.level="basis";
   var calm = load("mbg_calm",true);
@@ -420,7 +422,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
     document.documentElement.setAttribute("data-theme", theme);
     document.getElementById("themeBtn").innerHTML = (theme==="dark"?ic("sun"):ic("moon"))+'<span>'+(theme==="dark"?"Licht":"Donker")+'</span>';
   }
-  document.getElementById("themeBtn").onclick=function(){ theme=theme==="dark"?"light":"dark"; save("mbg_theme",theme); applyTheme(); };
+  document.getElementById("themeBtn").onclick=function(){ theme=theme==="dark"?"light":"dark"; rawSet("site_theme",theme); save("mbg_theme",theme); applyTheme(); };
 
   // ---------- mode helpers ----------
   function flags(){
@@ -515,7 +517,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
   var tabsEl=document.getElementById("tabs");
   tabsEl.innerHTML=TABS.map(function(t){ return '<button data-view="'+t.v+'"'+(t.v==="home"?' class="on"':'')+'>'+ic(t.icon)+'<span>'+t.label+'</span></button>'; }).join("");
   var tabBtns=Array.prototype.slice.call(tabsEl.querySelectorAll("button"));
-  tabBtns.forEach(function(b){ b.onclick=function(){ if(b.dataset.view==="home") state.step="track"; go(b.dataset.view); }; });
+  tabBtns.forEach(function(b){ b.onclick=function(){ state.fromHub=false; if(b.dataset.view==="home") state.step="track"; go(b.dataset.view); }; });
   function go(v){ state.view=v; tabBtns.forEach(function(b){ b.classList.toggle("on", b.dataset.view===v); }); render(); window.scrollTo(0,0); }
 
   // =================== RENDER ===================
@@ -581,7 +583,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
       '</div>';
     setHTML(html);
     document.getElementById("examInp").onchange=function(e){ save("mbg_exam", e.target.value); renderTrack(); };
-    document.getElementById("resetBtn").onclick=function(){ if(confirm("Alle voortgang wissen?")){ prog={}; flash={}; save("mbg_prog",prog); save("mbg_flash",flash); renderTrack(); } };
+    document.getElementById("resetBtn").onclick=function(){ if(confirm("Je oefenvoortgang wissen?")){ prog={}; flash={}; save("mbg_prog",prog); save("mbg_flash",flash); renderTrack(); } };
     Array.prototype.slice.call(document.querySelectorAll(".track")).forEach(function(el){
       el.onclick=function(){ var t=el.dataset.track; setTrack(t); state.step=(t==="herkansing"?"herkansing":"practice"); renderHome(); window.scrollTo(0,0); }; });
     fetchCounter();
@@ -663,7 +665,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
   function modeBanner(){
     var herk=modeCfg.track==="herkansing";
     return '<div class="modebanner'+(herk?" v":"")+'">'+ic(herk?"sprout":"book")+'<span>'+modeLabel()+'</span>'+
-      '<a id="changeModeLink">wijzig</a></div>';
+      '<button type="button" class="bnlink" id="changeModeLink">wijzig</button></div>';
   }
   function bindBanner(){ var l=document.getElementById("changeModeLink"); if(l) l.onclick=function(){ if(state.fromHub){ location.href="https://berat007yildirim-ai.github.io/"; return; } state.step="track"; go("home"); }; }
 
@@ -710,8 +712,9 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
     var dep = q.options.some(function(o){ return /bovenstaande/i.test(o.text) || /zowel\s+[a-e]\s+als\s+[a-e]/i.test(o.text); });
     return { q:q, opts: dep ? q.options.slice() : shuffle(q.options), aid:false, fiftyDone:false };
   }
-  function startExamSim(){ var p=shuffle(D.mcq.slice()).slice(0,40); startQuiz(p,"Examen-simulatie"); go("quiz"); }
-  function startNotKnown(){ var p=shuffle(D.mcq.filter(notKnown)); startQuiz(p,"Nog te leren"); go("quiz"); }
+  function gotoQuiz(p,label){ state.view="quiz"; tabBtns.forEach(function(b){ b.classList.toggle("on", b.dataset.view==="quiz"); }); startQuiz(p,label); window.scrollTo(0,0); }
+  function startExamSim(){ gotoQuiz(shuffle(D.mcq.slice()).slice(0,40),"Examen-simulatie"); }
+  function startNotKnown(){ gotoQuiz(shuffle(D.mcq.filter(notKnown)),"Nog te leren"); }
 
   function renderQuiz(){
     var Q=state.quiz;
@@ -1015,7 +1018,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
 
   // traject vanuit de hub overnemen → direct naar de oefenpagina
   try{ var _q=new URLSearchParams(location.search); var _m=_q.get("m");
-    if(_m==="training"||_m==="herkansing"){ setTrack(_m);
+    if(_m==="training"||_m==="herkansing"){ setTrack(_m); if(_m==="herkansing") setLevel("basis");
       var _c=_q.get("calm"); if(_c!=null){ calm=(_c!=="0"); save("mbg_calm",calm); applyCalm(); }
       state.step="practice"; state.fromHub=true; }
   }catch(e){}
