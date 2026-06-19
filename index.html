@@ -97,6 +97,23 @@
   /* section label */
   .seclabel{display:flex;align-items:center;gap:8px;margin:26px 0 12px;font-weight:700;font-size:15px;scroll-margin-top:118px}
   .reveal{scroll-margin-top:118px}
+
+  /* "Zo werkt het" uitleg */
+  .helpcard{margin:6px 0 2px}
+  .helpcard .xbtn{border:none;background:none;color:var(--muted);padding:4px;border-radius:8px;display:inline-flex;line-height:0}
+  .helpcard .xbtn:hover{color:var(--ink);background:var(--bg2)}
+  .helpcard .xbtn .ic{width:18px;height:18px}
+  .steps{display:grid;gap:13px;margin-top:13px}
+  @media(min-width:620px){.steps{grid-template-columns:repeat(3,1fr);gap:18px}}
+  .step{display:flex;gap:11px;align-items:flex-start}
+  .step .sn{flex:none;width:26px;height:26px;border-radius:8px;background:var(--accent);color:#fff;
+    display:grid;place-items:center;font-weight:700;font-size:13px}
+  .step b{display:block;font-size:14px;margin-bottom:2px}
+  .step small{color:var(--muted);font-size:12.5px;line-height:1.45}
+  .helptoggle{border:1px solid var(--line);background:var(--card);color:var(--accent-ink);border-radius:10px;
+    min-height:38px;padding:8px 13px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:7px;margin:6px 0 2px;
+    transition:border-color .2s var(--ease)}
+  .helptoggle:hover{border-color:var(--accent)} .helptoggle .ic{width:16px;height:16px}
   .seclabel .ic{width:18px;height:18px;color:var(--accent-ink)}
   .seclabel .sub{font-weight:500;color:var(--muted);font-size:13px;margin-left:auto}
 
@@ -391,6 +408,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
   var theme = load("mbg_theme","light");
   var modeCfg = load("mbg_mode",{track:"training",level:null});
   if(modeCfg.track==="herkansing" && !modeCfg.level) modeCfg.level="basis";
+  var helpHidden = load("mbg_help_hidden",false);
   applyTheme();
 
   function applyTheme(){
@@ -557,6 +575,21 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
         '<button class="mode js-enter" id="notKnownBtn"'+(n?"":' disabled')+'><span class="me">'+ic("target")+'</span><b>Vragen die je nog niet kent</b><small>'+(n? n+' vragen nog te leren · '+done+' al beheerst.':'Top! Je hebt alle vragen al eens juist beantwoord. 🎉')+'</small></button>'+
       '</div>';
 
+    var helpHTML = helpHidden
+      ? '<button class="helptoggle js-enter" id="showHelp">'+ic("help")+'Hoe werkt het?</button>'
+      : '<div class="card pad helpcard js-enter">'+
+          '<div class="row" style="justify-content:space-between;align-items:flex-start">'+
+            '<b style="font-size:15px;display:inline-flex;align-items:center;gap:8px">'+ic("help")+'Zo werkt het</b>'+
+            '<button class="xbtn" id="hideHelp" aria-label="Uitleg verbergen" title="Verbergen">'+ic("x")+'</button>'+
+          '</div>'+
+          '<div class="steps">'+
+            '<div class="step"><span class="sn">1</span><div><b>Kies je manier van oefenen</b><small>Examen Training (normaal) of Herkansing Support (met hints &amp; extra uitleg).</small></div></div>'+
+            '<div class="step"><span class="sn">2</span><div><b>Kies waarmee je oefent</b><small>Oefenexamen, oude examenvragen of de examen-simulatie.</small></div></div>'+
+            '<div class="step"><span class="sn">3</span><div><b>Start en leer</b><small>Na elk antwoord meteen feedback. Klik op &ldquo;Waarom?&rdquo; voor de uitleg.</small></div></div>'+
+          '</div>'+
+          '<p class="muted" style="margin:13px 0 0;font-size:13px">Bovenaan vind je ook <b>Studie-hacks</b> (tips &amp; ezelsbruggetjes) en <b>Samenvatting</b> per hoofdstuk.</p>'+
+        '</div>';
+
     var html =
       '<div class="hero js-enter">'+
         '<div class="count"><b>'+(dl<0?"–":dl)+'</b><span>'+(dl===1?"dag te gaan":(dl<0?"examen voorbij":"dagen te gaan"))+'</span></div>'+
@@ -566,6 +599,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
         '</div>'+
       '</div>'+
       '<p class="visits">'+ic("sparkles")+'<span><b id="counterVal" style="color:var(--accent-ink)"><span class="skel"></span></b> mensen hebben deze tool al gebruikt</span></p>'+
+      helpHTML+
 
       '<div class="seclabel">'+ic("sparkles")+'Kies je manier van oefenen</div>'+
       trackHTML+
@@ -581,6 +615,8 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
 
     document.getElementById("examInp").onchange=function(e){ save("mbg_exam", e.target.value); renderHome(); };
     document.getElementById("resetBtn").onclick=function(){ if(confirm("Alle voortgang wissen?")){ prog={}; flash={}; save("mbg_prog",prog); save("mbg_flash",flash); renderHome(); } };
+    var hh=document.getElementById("hideHelp"); if(hh) hh.onclick=function(){ helpHidden=true; save("mbg_help_hidden",true); renderHome(); };
+    var sh=document.getElementById("showHelp"); if(sh) sh.onclick=function(){ helpHidden=false; save("mbg_help_hidden",false); renderHome(); };
     Array.prototype.slice.call(document.querySelectorAll(".track")).forEach(function(el){
       el.onclick=function(){ var t=el.dataset.track; setTrack(t); updateModeUI(t==="herkansing"?"#levelReveal":"#practiceAnchor", el); }; });
     Array.prototype.slice.call(document.querySelectorAll(".level")).forEach(function(el){
