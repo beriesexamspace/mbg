@@ -95,25 +95,7 @@
   .visits .ic{width:16px;height:16px;color:var(--accent-ink)}
 
   /* section label */
-  .seclabel{display:flex;align-items:center;gap:8px;margin:26px 0 12px;font-weight:700;font-size:15px;scroll-margin-top:118px}
-  .reveal{scroll-margin-top:118px}
-
-  /* "Zo werkt het" uitleg */
-  .helpcard{margin:6px 0 2px}
-  .helpcard .xbtn{border:none;background:none;color:var(--muted);padding:4px;border-radius:8px;display:inline-flex;line-height:0}
-  .helpcard .xbtn:hover{color:var(--ink);background:var(--bg2)}
-  .helpcard .xbtn .ic{width:18px;height:18px}
-  .steps{display:grid;gap:13px;margin-top:13px}
-  @media(min-width:620px){.steps{grid-template-columns:repeat(3,1fr);gap:18px}}
-  .step{display:flex;gap:11px;align-items:flex-start}
-  .step .sn{flex:none;width:26px;height:26px;border-radius:8px;background:var(--accent);color:#fff;
-    display:grid;place-items:center;font-weight:700;font-size:13px}
-  .step b{display:block;font-size:14px;margin-bottom:2px}
-  .step small{color:var(--muted);font-size:12.5px;line-height:1.45}
-  .helptoggle{border:1px solid var(--line);background:var(--card);color:var(--accent-ink);border-radius:10px;
-    min-height:38px;padding:8px 13px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:7px;margin:6px 0 2px;
-    transition:border-color .2s var(--ease)}
-  .helptoggle:hover{border-color:var(--accent)} .helptoggle .ic{width:16px;height:16px}
+  .seclabel{display:flex;align-items:center;gap:8px;margin:26px 0 12px;font-weight:700;font-size:15px}
   .seclabel .ic{width:18px;height:18px;color:var(--accent-ink)}
   .seclabel .sub{font-weight:500;color:var(--muted);font-size:13px;margin-left:auto}
 
@@ -147,9 +129,8 @@
   .track .chk .ic{width:15px;height:15px;stroke-width:2.5}
 
   /* level reveal */
-  .reveal{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .35s var(--ease),opacity .3s var(--ease),margin .3s var(--ease);margin-top:0}
-  .reveal>div{overflow:hidden;min-height:0}
-  .reveal.open{grid-template-rows:1fr;opacity:1;margin-top:12px}
+  .reveal{display:none;margin-top:12px}
+  .reveal.open{display:block}
   .levels{display:grid;gap:12px}
   @media(min-width:560px){.levels{grid-template-columns:1fr 1fr}}
   .level{display:flex;gap:13px;align-items:flex-start;text-align:left;width:100%;border:1.5px solid var(--line);
@@ -162,6 +143,21 @@
   .level b{font-size:15px;display:block}
   .level small{color:var(--muted);font-size:13px}
   .level.on{border-color:var(--violet);box-shadow:0 0 0 3px var(--violet-soft),var(--shadow)}
+
+  /* merk-/vakwissel-strook */
+  .brandstrip{display:flex;align-items:center;gap:13px;width:100%;text-decoration:none;color:inherit;
+    border:1px solid var(--line);background:var(--card);border-radius:var(--r);padding:12px 16px;margin:8px 0 2px;
+    box-shadow:var(--shadow);transition:border-color .2s var(--ease),transform .15s var(--ease),box-shadow .2s var(--ease)}
+  .brandstrip:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+  .brandstrip .bs-logo{width:36px;height:36px;border-radius:10px;flex:none;display:grid;place-items:center;color:#fff;
+    font-family:Georgia,serif;font-weight:700;font-size:17px;background:linear-gradient(145deg,var(--accent),var(--accent-ink));
+    box-shadow:0 2px 6px rgba(15,110,106,.35)}
+  .brandstrip .bs-txt{flex:1;min-width:0}
+  .brandstrip .bs-txt b{display:block;font-size:14.5px;letter-spacing:.1px}
+  .brandstrip .bs-txt small{color:var(--muted);font-size:12.5px}
+  .brandstrip .bs-go{color:var(--accent-ink);flex:none;display:inline-flex}
+  .brandstrip .bs-go .ic{width:18px;height:18px;transition:transform .2s var(--ease)}
+  .brandstrip:hover .bs-go .ic{transform:translateX(3px)}
 
   /* practice mode cards */
   .mode{display:flex;flex-direction:column;text-align:left;width:100%;border:1px solid var(--line);
@@ -317,8 +313,6 @@
     .js-enter{animation:fadeUp .36s var(--ease) both}
     .feedback,.hintbox,.whybox{animation:slideIn .28s var(--ease) both}
     .opt.correct{animation:pop .34s var(--ease)}
-    .mode.hl{animation:pop .5s var(--ease)}
-    .track.justpicked{animation:pop .4s var(--ease)}
   }
   @media (prefers-reduced-motion: reduce){
     *{animation-duration:.001ms!important;transition-duration:.001ms!important}
@@ -408,7 +402,6 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
   var theme = load("mbg_theme","light");
   var modeCfg = load("mbg_mode",{track:"training",level:null});
   if(modeCfg.track==="herkansing" && !modeCfg.level) modeCfg.level="basis";
-  var helpHidden = load("mbg_help_hidden",false);
   applyTheme();
 
   function applyTheme(){
@@ -432,21 +425,13 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
   function setTrack(t){ modeCfg.track=t; if(t==="herkansing" && !modeCfg.level) modeCfg.level="basis"; save("mbg_mode",modeCfg); }
   function setLevel(l){ modeCfg.level=l; save("mbg_mode",modeCfg); }
   // werk de keuze in-place bij (geen volledige her-render -> vloeiend) en scroll zacht mee
-  function updateModeUI(scrollSel,picked){
+  // werk de keuze netjes in-place bij (geen sprong, geen scroll)
+  function updateModeUI(){
     var herk = modeCfg.track==="herkansing";
     Array.prototype.slice.call(document.querySelectorAll(".track")).forEach(function(el){ el.classList.toggle("on", el.dataset.track===modeCfg.track); });
     var rev=document.getElementById("levelReveal"); if(rev) rev.classList.toggle("open", herk);
     Array.prototype.slice.call(document.querySelectorAll(".level")).forEach(function(el){ el.classList.toggle("on", el.dataset.level===modeCfg.level); });
     var sub=document.querySelector("#practiceAnchor .sub"); if(sub) sub.textContent=modeLabel();
-    if(picked){ picked.classList.remove("justpicked"); void picked.offsetWidth; picked.classList.add("justpicked"); }
-    if(scrollSel){ var t=document.querySelector(scrollSel);
-      if(t){ setTimeout(function(){
-        t.scrollIntoView({behavior:"smooth",block:"start"});
-        if(scrollSel==="#practiceAnchor"){
-          Array.prototype.slice.call(document.querySelectorAll(".mode")).forEach(function(m,i){
-            m.classList.remove("hl"); void m.offsetWidth; setTimeout(function(){ m.classList.add("hl"); }, 90*i); });
-        }
-      }, herk?300:60); } }
   }
 
   // ---------- exam date ----------
@@ -575,20 +560,12 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
         '<button class="mode js-enter" id="notKnownBtn"'+(n?"":' disabled')+'><span class="me">'+ic("target")+'</span><b>Vragen die je nog niet kent</b><small>'+(n? n+' vragen nog te leren · '+done+' al beheerst.':'Top! Je hebt alle vragen al eens juist beantwoord. 🎉')+'</small></button>'+
       '</div>';
 
-    var helpHTML = helpHidden
-      ? '<button class="helptoggle js-enter" id="showHelp">'+ic("help")+'Hoe werkt het?</button>'
-      : '<div class="card pad helpcard js-enter">'+
-          '<div class="row" style="justify-content:space-between;align-items:flex-start">'+
-            '<b style="font-size:15px;display:inline-flex;align-items:center;gap:8px">'+ic("help")+'Zo werkt het</b>'+
-            '<button class="xbtn" id="hideHelp" aria-label="Uitleg verbergen" title="Verbergen">'+ic("x")+'</button>'+
-          '</div>'+
-          '<div class="steps">'+
-            '<div class="step"><span class="sn">1</span><div><b>Kies je manier van oefenen</b><small>Examen Training (normaal) of Herkansing Support (met hints &amp; extra uitleg).</small></div></div>'+
-            '<div class="step"><span class="sn">2</span><div><b>Kies waarmee je oefent</b><small>Oefenexamen, oude examenvragen of de examen-simulatie.</small></div></div>'+
-            '<div class="step"><span class="sn">3</span><div><b>Start en leer</b><small>Na elk antwoord meteen feedback. Klik op &ldquo;Waarom?&rdquo; voor de uitleg.</small></div></div>'+
-          '</div>'+
-          '<p class="muted" style="margin:13px 0 0;font-size:13px">Bovenaan vind je ook <b>Studie-hacks</b> (tips &amp; ezelsbruggetjes) en <b>Samenvatting</b> per hoofdstuk.</p>'+
-        '</div>';
+    var brandStrip =
+      '<a class="brandstrip js-enter" href="https://berat007yildirim-ai.github.io/" title="Naar Berie’s exam space — alle vakken">'+
+        '<span class="bs-logo">B</span>'+
+        '<span class="bs-txt"><b>Berie’s exam space</b><small>Een ander vak leren? Bekijk alle vakken</small></span>'+
+        '<span class="bs-go">'+ic("arrowR")+'</span>'+
+      '</a>';
 
     var html =
       '<div class="hero js-enter">'+
@@ -599,7 +576,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
         '</div>'+
       '</div>'+
       '<p class="visits">'+ic("sparkles")+'<span><b id="counterVal" style="color:var(--accent-ink)"><span class="skel"></span></b> mensen hebben deze tool al gebruikt</span></p>'+
-      helpHTML+
+      brandStrip+
 
       '<div class="seclabel">'+ic("sparkles")+'Kies je manier van oefenen</div>'+
       trackHTML+
@@ -615,12 +592,10 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
 
     document.getElementById("examInp").onchange=function(e){ save("mbg_exam", e.target.value); renderHome(); };
     document.getElementById("resetBtn").onclick=function(){ if(confirm("Alle voortgang wissen?")){ prog={}; flash={}; save("mbg_prog",prog); save("mbg_flash",flash); renderHome(); } };
-    var hh=document.getElementById("hideHelp"); if(hh) hh.onclick=function(){ helpHidden=true; save("mbg_help_hidden",true); renderHome(); };
-    var sh=document.getElementById("showHelp"); if(sh) sh.onclick=function(){ helpHidden=false; save("mbg_help_hidden",false); renderHome(); };
     Array.prototype.slice.call(document.querySelectorAll(".track")).forEach(function(el){
-      el.onclick=function(){ var t=el.dataset.track; setTrack(t); updateModeUI(t==="herkansing"?"#levelReveal":"#practiceAnchor", el); }; });
+      el.onclick=function(){ setTrack(el.dataset.track); updateModeUI(); }; });
     Array.prototype.slice.call(document.querySelectorAll(".level")).forEach(function(el){
-      el.onclick=function(){ setLevel(el.dataset.level); updateModeUI("#practiceAnchor", el); }; });
+      el.onclick=function(){ setLevel(el.dataset.level); updateModeUI(); }; });
     Array.prototype.slice.call(document.querySelectorAll("[data-mode]")).forEach(function(el){ el.onclick=function(){ go(el.dataset.mode); }; });
     var es=document.getElementById("examSimBtn"); if(es) es.onclick=function(){ startExamSim(); };
     var wb=document.getElementById("notKnownBtn"); if(wb && !wb.disabled) wb.onclick=function(){ startNotKnown(); };
