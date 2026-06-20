@@ -334,7 +334,7 @@
   <div class="topin">
     <div class="brand"><span class="logo">M</span><div>MBG Examentraining<small>Berie’s exam space</small></div></div>
     <span class="spacer"></span>
-    <a class="iconbtn" href="https://berat007yildirim-ai.github.io/" title="Andere vakken kiezen"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Vakken</span></a>
+    <a class="iconbtn" href="https://beriesexamspace.github.io/" title="Andere vakken kiezen"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Vakken</span></a>
     <button class="iconbtn" id="themeBtn" aria-label="Wissel tussen licht en donker thema" title="Licht/donker"></button>
   </div>
   <nav class="tabs" id="tabs"></nav>
@@ -539,7 +539,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
     return renderTrack();
   }
   function brandStripHTML(){
-    return '<a class="brandstrip js-enter" href="https://berat007yildirim-ai.github.io/" title="Naar Berie’s exam space — alle vakken">'+
+    return '<a class="brandstrip js-enter" href="https://beriesexamspace.github.io/" title="Naar Berie’s exam space — alle vakken">'+
       '<span class="bs-logo">B</span>'+
       '<span class="bs-txt"><b>Berie’s exam space</b><small>Een ander vak leren? Bekijk alle vakken</small></span>'+
       '<span class="bs-go">'+ic("arrowR")+'</span></a>';
@@ -630,7 +630,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
         '<button class="mode js-enter" id="notKnownBtn"'+(n?"":' disabled')+'><span class="me">'+ic("target")+'</span><b>Vragen die je nog niet kent</b><small>'+(n? n+' vragen nog te leren · '+done+' al beheerst.':'Top! Je hebt alle vragen al eens juist beantwoord. 🎉')+'</small></button>'+
       '</div>';
     setHTML(html);
-    document.getElementById("backBtn").onclick=function(){ if(state.fromHub){ location.href="https://berat007yildirim-ai.github.io/"; return; } state.step=(herk?"herkansing":"track"); renderHome(); window.scrollTo(0,0); };
+    document.getElementById("backBtn").onclick=function(){ if(state.fromHub){ location.href="https://beriesexamspace.github.io/"; return; } state.step=(herk?"herkansing":"track"); renderHome(); window.scrollTo(0,0); };
     bindBanner();
     Array.prototype.slice.call(document.querySelectorAll("[data-mode]")).forEach(function(el){ el.onclick=function(){ go(el.dataset.mode); }; });
     var es=document.getElementById("examSimBtn"); if(es) es.onclick=function(){ startExamSim(); };
@@ -670,7 +670,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
     return '<div class="modebanner'+(herk?" v":"")+'">'+ic(herk?"sprout":"book")+'<span>'+modeLabel()+'</span>'+
       '<button type="button" class="bnlink" id="changeModeLink">wijzig</button></div>';
   }
-  function bindBanner(){ var l=document.getElementById("changeModeLink"); if(l) l.onclick=function(){ if(state.fromHub){ location.href="https://berat007yildirim-ai.github.io/"; return; } state.step="track"; go("home"); }; }
+  function bindBanner(){ var l=document.getElementById("changeModeLink"); if(l) l.onclick=function(){ if(state.fromHub){ location.href="https://beriesexamspace.github.io/"; return; } state.step="track"; go("home"); }; }
 
   // =================== QUIZ (MCQ) ===================
   function renderQuizGate(){
