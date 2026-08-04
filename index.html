@@ -921,7 +921,8 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
   // =================== GROTE VRAGENBANK (bank) ===================
   function renderBankGate(){
     if(state.quiz){ return renderQuiz(); }
-    var sel = state._bankSel || {chs:{}, count:20, shuffle:true, src:"alle"};
+    var sel = state._bankSel;
+    if(!sel){ sel={chs:{}, count:20, shuffle:true, src:"alle"}; chapters.forEach(function(c){ sel.chs[c.ch]=true; }); }
     state._bankSel = sel;
     var SRC=[{k:"alle",t:"Allebei"},{k:"nl",t:"Oude examens (NL)"},{k:"en",t:"Handboek (EN)"}];
     var html=modeBanner()+'<div class="card pad js-enter"><h2 style="margin-top:0">Grote vragenbank</h2>'+
