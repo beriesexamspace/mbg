@@ -879,7 +879,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
       '<div class="chips" id="cnt">'+[10,20,30,50,999].map(function(n){
           return '<button class="chip'+(sel.count===n?" on":"")+'" data-n="'+n+'">'+(n===999?"Alle":n)+'</button>';
         }).join("")+'</div>'+
-      '<label class="fld"><input type="checkbox" id="shuf" '+(sel.shuffle?"checked":"")+'> Vragen in willekeurige volgorde</label>'+
+      '<label class="fld">'+"Volgorde van de vragen"+'</label><div class="chips" id="ord">'+'<button class="chip'+(sel.shuffle?" on":"")+'" data-sh="1">'+"Door elkaar"+'</button>'+'<button class="chip'+(sel.shuffle?"":" on")+'" data-sh="0">'+"Op volgorde"+'</button>'+'</div>'+
       '<div class="row" style="margin-top:18px"><button class="btn" id="startQ">Start oefenexamen '+ic("arrowR")+'</button>'+
         '<span class="muted" id="poolN"></span></div>'+
     '</div>';
@@ -893,7 +893,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
     document.getElementById("allCh").onclick=function(){ chapters.forEach(function(c){sel.chs[c.ch]=true;}); renderQuizGate(); };
     document.getElementById("noCh").onclick=function(){ sel.chs={}; renderQuizGate(); };
     Array.prototype.slice.call(document.querySelectorAll("#cnt .chip")).forEach(function(b){ b.onclick=function(){ sel.count=+b.dataset.n; renderQuizGate(); }; });
-    document.getElementById("shuf").onchange=function(e){ sel.shuffle=e.target.checked; };
+    [].slice.call(document.querySelectorAll("#ord .chip")).forEach(function(b){ b.onclick=function(){ sel.shuffle=b.dataset.sh==="1"; [].slice.call(document.querySelectorAll("#ord .chip")).forEach(function(x){x.classList.toggle("on",x===b);}); }; });
     document.getElementById("startQ").onclick=function(){ var p=pool(); if(sel.shuffle) p=shuffle(p); if(sel.count<p.length) p=p.slice(0,sel.count); startQuiz(p,"Oefenexamen"); };
     refreshPool();
   }
@@ -921,7 +921,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
       '<div class="chips" id="cnt">'+[10,20,30,50,999].map(function(n){
           return '<button class="chip'+(sel.count===n?" on":"")+'" data-n="'+n+'">'+(n===999?"Alle":n)+'</button>';
         }).join("")+'</div>'+
-      '<label class="fld"><input type="checkbox" id="shuf" '+(sel.shuffle?"checked":"")+'> Vragen in willekeurige volgorde</label>'+
+      '<label class="fld">'+"Volgorde van de vragen"+'</label><div class="chips" id="ord">'+'<button class="chip'+(sel.shuffle?" on":"")+'" data-sh="1">'+"Door elkaar"+'</button>'+'<button class="chip'+(sel.shuffle?"":" on")+'" data-sh="0">'+"Op volgorde"+'</button>'+'</div>'+
       '<div class="row" style="margin-top:18px"><button class="btn" id="startB">Start '+ic("arrowR")+'</button>'+
         '<span class="muted" id="poolN"></span></div>'+
     '</div>';
@@ -939,7 +939,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
     document.getElementById("allCh").onclick=function(){ chapters.forEach(function(c){sel.chs[c.ch]=true;}); renderBankGate(); };
     document.getElementById("noCh").onclick=function(){ sel.chs={}; renderBankGate(); };
     Array.prototype.slice.call(document.querySelectorAll("#cnt .chip")).forEach(function(b){ b.onclick=function(){ sel.count=+b.dataset.n; renderBankGate(); }; });
-    document.getElementById("shuf").onchange=function(e){ sel.shuffle=e.target.checked; };
+    [].slice.call(document.querySelectorAll("#ord .chip")).forEach(function(b){ b.onclick=function(){ sel.shuffle=b.dataset.sh==="1"; [].slice.call(document.querySelectorAll("#ord .chip")).forEach(function(x){x.classList.toggle("on",x===b);}); }; });
     document.getElementById("startB").onclick=function(){ var p=pool(); if(sel.shuffle) p=shuffle(p); if(sel.count<p.length) p=p.slice(0,sel.count); startQuiz(p,"StudyFlash"); };
     refreshPool();
   }
@@ -1207,7 +1207,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
         var n=D.reco.filter(function(q){return q.ch===c.ch;}).length;
         return '<button class="chip'+(sel.chs[c.ch]?" on":"")+'" data-ch="'+c.ch+'">H'+c.ch+' · '+esc(c.title)+' ('+n+')</button>';
       }).join("")+'</div>'+
-      '<label class="fld"><input type="checkbox" id="shuf" '+(sel.shuffle?"checked":"")+'> Willekeurige volgorde</label>'+
+      '<label class="fld">'+"Volgorde van de vragen"+'</label><div class="chips" id="ord">'+'<button class="chip'+(sel.shuffle?" on":"")+'" data-sh="1">'+"Door elkaar"+'</button>'+'<button class="chip'+(sel.shuffle?"":" on")+'" data-sh="0">'+"Op volgorde"+'</button>'+'</div>'+
       '<label class="fld"><input type="checkbox" id="onlyU" '+(sel.onlyUnknown?"checked":"")+'> Alleen vragen die ik nog niet ken</label>'+
       '<div class="row" style="margin-top:18px"><button class="btn" id="startF">Start '+ic("arrowR")+'</button><span class="muted" id="poolN"></span></div>'+
     '</div>';
@@ -1219,7 +1219,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
       b.onclick=function(){ var c=+b.dataset.ch; sel.chs[c]=!sel.chs[c]; b.classList.toggle("on"); refresh(); }; });
     document.getElementById("allCh").onclick=function(){ chapters.forEach(function(c){sel.chs[c.ch]=true;}); renderFlashGate(); };
     document.getElementById("noCh").onclick=function(){ sel.chs={}; renderFlashGate(); };
-    document.getElementById("shuf").onchange=function(e){ sel.shuffle=e.target.checked; };
+    [].slice.call(document.querySelectorAll("#ord .chip")).forEach(function(b){ b.onclick=function(){ sel.shuffle=b.dataset.sh==="1"; [].slice.call(document.querySelectorAll("#ord .chip")).forEach(function(x){x.classList.toggle("on",x===b);}); }; });
     document.getElementById("onlyU").onchange=function(e){ sel.onlyUnknown=e.target.checked; refresh(); };
     document.getElementById("startF").onclick=function(){ var p=pool(); if(sel.shuffle)p=shuffle(p); startFlash(p); };
     refresh();
