@@ -946,7 +946,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
 
   function startQuiz(pool,label){
     bump("berat-mbg", modeCfg.track==="herkansing"?"herkansing":"training");
-    state.quiz = { label:label, items:pool.map(prepMCQ), idx:0, answered:false, picked:null, correct:0, wrong:[], done:false };
+    state.quiz = { label:label, items:pool.map(prepMCQ), picks:[], idx:0, answered:false, picked:null, correct:0, wrong:[], done:false };
     renderQuiz();
   }
   function prepMCQ(q){
@@ -962,6 +962,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
     var Q=state.quiz;
     if(Q.done) return renderQuizResult();
     var cur=Q.items[Q.idx]; var q=cur.q; var F=flags();
+    if(!Q.picks)Q.picks=[]; if(Q.picks[Q.idx]!=null){ Q.answered=true; Q.picked=Q.picks[Q.idx]; } else { Q.answered=false; Q.picked=null; }
     var aidsHTML = (F.hints) ?
       '<div class="aids" id="aids">'+
         '<button class="aidbtn" id="hintBtn">'+ic("bulb")+'Hint</button>'+
@@ -980,6 +981,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
         }).join("")+'</div>'+
       '<div id="fb"></div>'+
       '<div class="row" style="justify-content:space-between;margin-top:6px">'+
+        (Q.idx>0?'<button class="btn ghost" id="qPrevBtn">'+ic("back")+L("Vorige","Previous")+'</button>':'')+
         '<span class="muted" style="font-size:12px">'+L("Toets","Press")+' <span class="kbd">A–E</span> '+L("om te kiezen","to choose")+' · <span class="kbd">Enter</span> '+L("= volgende","= next")+'</span>'+
         '<button class="btn hide" id="nextBtn">Volgende '+ic("arrowR")+'</button></div>'+
     '</div>';
@@ -989,6 +991,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
     optBtns.forEach(function(b){ b.onclick=function(){ pick(+b.dataset.i); }; });
     document.getElementById("backBtn").onclick=function(){ state.quiz=null; if(state.view==="bank") renderBankGate(); else renderQuizGate(); };
     var nb=document.getElementById("nextBtn"); nb.onclick=next;
+    var qpv=document.getElementById("qPrevBtn"); if(qpv) qpv.onclick=function(){ if(Q.idx>0){ Q.idx--; renderQuiz(); window.scrollTo(0,0); } };
 
     if(F.hints){
       var hb=document.getElementById("hintBtn"), fb2=document.getElementById("fiftyBtn");
@@ -1031,7 +1034,7 @@ window.MBG_HACKS = {"tips":[{"h":"Actief ophalen (active recall)","t":"Lees niet
       nb.innerHTML=(Q.idx+1>=Q.items.length)?"Bekijk resultaat "+ic("arrowR"):"Volgende "+ic("arrowR");
     }
     function pick(i){
-      if(Q.answered) return; Q.answered=true; Q.picked=i;
+      if(Q.answered) return; Q.answered=true; Q.picked=i; Q.picks[Q.idx]=i;
       var correct = cur.opts[i].letter===q.answer;
       if(correct){ Q.correct++; } else { Q.wrong.push(q); }
       var p=prog[q.id]||{seen:0,correct:0}; p.seen++; if(correct)p.correct++; prog[q.id]=p; save("mbg_prog",prog);
